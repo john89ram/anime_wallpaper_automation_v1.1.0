@@ -24,14 +24,11 @@ for i, item in enumerate(prompts):
     print(f"\n📤 Sending prompt {i+1}/3 to OpenAI...")
 
     response = openai.images.generate(
-        model="gpt-image-1",
+        model="dall-e-3",
         prompt=prompt,
-        size="1024x1536",  # Portrait 9:16
-        quality="high",
-        moderation="low",
-        output_format="jpeg",
-        background="opaque",
-        output_compression=50,
+        size="1024x1792",  # Portrait 9:16
+        quality="hd",
+        n=1
     )
 
     image_url = response.data[0].url

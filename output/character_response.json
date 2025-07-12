@@ -1,0 +1,20 @@
+[
+  {
+    "name": "Holo",
+    "origin": "Spice and Wolf",
+    "clothing": "Traditional medieval attire with a long brown cloak and a simple dress, often accessorized with a belt and a pouch.",
+    "color_scheme": "Earthy tones such as browns, reds, and oranges, reflecting her wolf heritage."
+  },
+  {
+    "name": "Rin Shima",
+    "origin": "Yuru Camp",
+    "clothing": "Casual winter camping outfit, including a puffer jacket, scarf, beanie, and gloves.",
+    "color_scheme": "Cool tones like blues and purples, often paired with neutral colors like gray and white."
+  },
+  {
+    "name": "Shoto Todoroki",
+    "origin": "My Hero Academia",
+    "clothing": "Hero costume featuring a blue and white jumpsuit with utility belt and combat boots.",
+    "color_scheme": "Red and white hair, with a predominantly blue costume accented by white and silver details."
+  }
+]

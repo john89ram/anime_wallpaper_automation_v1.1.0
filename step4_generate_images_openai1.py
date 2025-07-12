@@ -1,81 +1,69 @@
-import json
 import os
-import time
+import json
+import base64
+import requests
 from pathlib import Path
 from dotenv import load_dotenv
-import requests
 
-# 🔐 Load API key from .env (optional)
+# 🔐 Load environment variables
 load_dotenv()
-CUSTOM_API_KEY = os.getenv("CUSTOM_IMAGE_API_KEY")  # or hardcode below
+API_KEY = os.getenv("OPENAI_API_KEY")
 
-# 🌐 Your custom image generation API endpoint
-CUSTOM_API_URL = "https://your.image.api/generate"
-
-# 📁 Files
+# 📁 Config
 PROMPT_FILE = "output/final_prompts.json"
 OUTPUT_DIR = Path("output")
 OUTPUT_DIR.mkdir(exist_ok=True)
+
+# 🖼 Image generation config
+API_URL = "https://api.openai.com/v1/images/generations"
+HEADERS = {
+    "Authorization": f"Bearer {API_KEY}",
+    "Content-Type": "application/json"
+}
+PARAMS_BASE = {
+    "model": "gpt-image-1",
+    "size": "1024x1536",
+    "quality": "high",
+    "moderation": "low",
+    "output_format": "jpeg",
+    "background": "opaque"
+    # ❌ Do NOT include 'response_format'
+}
 
 # 📖 Load prompts
 with open(PROMPT_FILE, "r", encoding="utf-8") as f:
     prompts = json.load(f)
 
-# 🎨 Image generation loop
-for idx, prompt in enumerate(prompts):
-    prompt_text = prompt["final_prompt"]
-    print(f"\n📤 Sending prompt {idx + 1}/{len(prompts)} to custom image API...")
-    print("📝 Prompt preview:\n", prompt_text)
+# 📤 Generate and save each image
+for i, entry in enumerate(prompts):
+    prompt = entry["final_prompt"]
+    print(f"\n📤 Sending prompt {i+1}/{len(prompts)} to OpenAI...")
+    print("📝 Prompt preview:\n", prompt[:300], "...")
 
-    payload = {
-        "model": "gpt-image-1",
-        "prompt": f"Generate a high-quality image with this prompt: {prompt_text}",
-        "size": "1024x1536",
-        "quality": "high",
-        "moderation": "low",
-        "output_format": "jpeg",
-        "background": "opaque",
-        "output_compression": 50
-    }
-
-    headers = {
-        "Authorization": f"Bearer {CUSTOM_API_KEY}",
-        "Content-Type": "application/json"
-    }
+    payload = PARAMS_BASE.copy()
+    payload["prompt"] = f"Generate a high-quality image with this prompt: {prompt}"
 
     try:
-        response = requests.post(CUSTOM_API_URL, headers=headers, json=payload)
+        response = requests.post(API_URL, headers=HEADERS, json=payload)
         response.raise_for_status()
-        response_json = response.json()
+        data = response.json()
 
-        # Get image URL or base64 (depending on API)
-        if "image_url" in response_json:
-            image_url = response_json["image_url"]
-            print("✅ Image URL received. Downloading...")
+        if "data" in data and data["data"] and "b64_json" in data["data"][0]:
+            b64_data = data["data"][0]["b64_json"]
+            image_data = base64.b64decode(b64_data)
+            output_path = OUTPUT_DIR / f"image-{i+1}.jpeg"
 
-            img_data = requests.get(image_url).content
-            out_file = OUTPUT_DIR / f"image-{idx + 1}.jpg"
-            with open(out_file, "wb") as f:
-                f.write(img_data)
-            print(f"💾 Saved to {out_file}")
-
-        elif "image_base64" in response_json:
-            import base64
-            image_data = base64.b64decode(response_json["image_base64"])
-            out_file = OUTPUT_DIR / f"image-{idx + 1}.jpg"
-            with open(out_file, "wb") as f:
+            with open(output_path, "wb") as f:
                 f.write(image_data)
-            print(f"💾 Saved to {out_file}")
-
+            print(f"💾 Saved to {output_path}")
         else:
-            print("⚠️ Unexpected response format:", response_json)
+            print("⚠️ No image returned or response malformed.")
+            print("🔍 Full response:", json.dumps(data, indent=2))
 
-    except requests.exceptions.RequestException as e:
-        print(f"❌ Request failed: {e}")
-        print("❗ Payload was:\n", json.dumps(payload, indent=2))
-        continue
-
-    # ⏱️ Wait between calls (adjust if needed)
-    time.sleep(1.5)
+    except requests.exceptions.HTTPError as err:
+        print("❌ HTTP Error:", err)
+        print("🔍 Full response:", response.text)
+    except Exception as e:
+        print("❌ General error:", e)
 
 print("\n🎉 Step 4 Complete. All available images downloaded.")
