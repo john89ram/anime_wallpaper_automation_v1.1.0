@@ -1,11 +1,21 @@
+# ✅ Updated: step1_style_agent.py
 
 import json
 import random
 import openai
 from pathlib import Path
-from config import OPENAI_API_KEY, STYLE_FILE, STYLE_RESPONSE, DEFAULT_TARGET, OPENAI_MODEL
-from config import USE_TEST_INPUT
-print(f"🧪 Using test input: {USE_TEST_INPUT}")
+from config import (
+    OPENAI_API_KEY,
+    STYLE_FILE,
+    STYLE_RESPONSE,
+    DEFAULT_TARGET,
+    OPENAI_MODEL,
+    USE_TEST_INPUT,
+    DEBUG_MODE
+)
+
+if DEBUG_MODE:
+    print(f"\U0001f9ea Using test input: {USE_TEST_INPUT}")
 
 # 🔐 Set API key
 openai.api_key = OPENAI_API_KEY
@@ -16,6 +26,9 @@ with open(STYLE_FILE, "r", encoding="utf-8") as f:
 
 # 🎲 Pick a style
 selected_style = random.choice(style_pool)
+
+if DEBUG_MODE:
+    print(f"🎯 Selected style: {selected_style}")
 
 # 🧠 Build system prompt
 style_agent_prompt = f"""
@@ -45,7 +58,14 @@ response = openai.chat.completions.create(
 )
 
 # 🧾 Parse & Save
-result = response.choices[0].message.content
+result = response.choices[0].message.content.strip()
+
+if DEBUG_MODE:
+    print("\U0001f50e Raw GPT output:\n", result)
+    Path("debug").mkdir(exist_ok=True)
+    with open("debug/step1_style_raw.json", "w", encoding="utf-8") as f:
+        f.write(result)
+
 style_json = json.loads(result)
 
 Path(STYLE_RESPONSE).parent.mkdir(exist_ok=True)

@@ -1,8 +1,19 @@
+# ✅ Updated: step3_final_prompt_agent.py (with quotes for name and origin)
 
 import json
 import openai
 from pathlib import Path
-from config import OPENAI_API_KEY, STYLE_RESPONSE, CHARACTER_RESPONSE, FINAL_PROMPTS, OPENAI_MODEL, DEFAULT_ASPECT_RATIO, DEFAULT_RESOLUTION, DEFAULT_RENDERING
+from config import (
+    OPENAI_API_KEY,
+    STYLE_RESPONSE,
+    CHARACTER_RESPONSE,
+    FINAL_PROMPTS,
+    OPENAI_MODEL,
+    DEFAULT_ASPECT_RATIO,
+    DEFAULT_RESOLUTION,
+    DEFAULT_RENDERING,
+    DEBUG_MODE
+)
 
 openai.api_key = OPENAI_API_KEY
 
@@ -27,8 +38,8 @@ You are an expert prompt composer for AI image generation. Your role is to take 
 
 for c in characters:
     system_prompt += f"""
-- Name: {c['name']}
-  Origin: {c['origin']}
+- Name: '{c['name']}'
+  Origin: '{c['origin']}'
   Clothing: {c['clothing']}
   Color Scheme: {c['color_scheme']}
 """
@@ -36,7 +47,7 @@ for c in characters:
 system_prompt += f"""
 Generate one cinematic text-to-image prompt for **each character**. Follow these rules:
 
-- Begin each prompt with: [Character] from [Origin] is pictured...
+- Begin each prompt with: '[Character]' from '[Origin]' is pictured...
 - Describe their appearance and outfit clearly
 - Incorporate the style’s setting, lighting, mood, etc.
 - Use vivid visual detail (not vague poetry)
@@ -54,6 +65,10 @@ Respond in valid JSON format:
 ]
 """
 
+if DEBUG_MODE:
+    print("\n🧠 Final prompt system message:\n")
+    print(system_prompt)
+
 response = openai.chat.completions.create(
     model=OPENAI_MODEL,
     messages=[{"role": "system", "content": system_prompt}],
@@ -61,6 +76,13 @@ response = openai.chat.completions.create(
 )
 
 content = response.choices[0].message.content.strip()
+
+if DEBUG_MODE:
+    print("\n🔎 Raw GPT output:\n", content)
+    Path("debug").mkdir(exist_ok=True)
+    with open("debug/step3_final_prompt_raw.json", "w", encoding="utf-8") as f:
+        f.write(content)
+
 if content.startswith("```json"):
     content = content.removeprefix("```json").removesuffix("```").strip()
 elif content.startswith("```"):

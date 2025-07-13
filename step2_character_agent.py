@@ -1,12 +1,21 @@
+# ✅ Updated: step2_character_agent.py
 
 import json
 import os
 import random
 import re
 from openai import OpenAI
-from config import OPENAI_API_KEY, CHARACTER_FILE, CHARACTER_RESPONSE, NUM_CHARACTERS
-from config import USE_TEST_INPUT
-print(f"🧪 Using test input: {USE_TEST_INPUT}")
+from config import (
+    OPENAI_API_KEY,
+    CHARACTER_FILE,
+    CHARACTER_RESPONSE,
+    NUM_CHARACTERS,
+    USE_TEST_INPUT,
+    DEBUG_MODE
+)
+
+if DEBUG_MODE:
+    print(f"🧪 Using test input: {USE_TEST_INPUT}")
 
 client = OpenAI(api_key=OPENAI_API_KEY)
 
@@ -17,14 +26,19 @@ with open(CHARACTER_FILE, "r", encoding="utf-8") as f:
 selected = random.sample(character_list, NUM_CHARACTERS)
 character_summary = "\n".join([f"{c['name']} from {c['origin']}" for c in selected])
 
+if DEBUG_MODE:
+    print("🎯 Selected characters:")
+    for c in selected:
+        print(f" - {c['name']} from {c['origin']}")
+
 user_prompt = f"""
-Take the following {NUM_CHARACTERS} anime characters and redesign them for a **dramatic cyberpunk anime scene**.
-Keep their names and origins the same, but reimagine their clothing and color_scheme to match a cyberpunk theme. 
-Output only a JSON array where each object contains:
+Take the following {NUM_CHARACTERS} anime characters and adapt their outfits slightly to match a more cinematic wallpaper style — without losing their original identity.
+Do NOT change who they are. Keep iconic outfits recognizable, just enhance or refine them slightly to reflect the mood and colors of a wallpaper setting.
+Return only a JSON array with:
 - name
 - origin
-- clothing (reimagined)
-- color_scheme (reimagined)
+- clothing
+- color_scheme (wallpaper-appropriate)
 
 Characters:
 {character_summary}
@@ -42,6 +56,12 @@ response = client.chat.completions.create(
 
 result = response.choices[0].message.content.strip()
 clean_json = re.sub(r"^```(json)?|```$", "", result.strip(), flags=re.MULTILINE).strip()
+
+if DEBUG_MODE:
+    print("🔎 Raw GPT output:\n", result)
+    os.makedirs("debug", exist_ok=True)
+    with open("debug/step2_characters_raw.json", "w", encoding="utf-8") as f:
+        f.write(result)
 
 try:
     char_json = json.loads(clean_json)

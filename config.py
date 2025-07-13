@@ -9,17 +9,18 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
 # === Toggle for test input mode ===
 USE_TEST_INPUT = False  # Set to False in production
+DEBUG_MODE = True  # Set to False to silence debug prints globally
 
 # === File Paths ===
 INPUT_DIR = "input"
-OUTPUT_DIR = "output"
+OUTPUT_DIR = "output\logs\images"
 
 STYLE_FILE = f"{INPUT_DIR}/{'styles_test.json' if USE_TEST_INPUT else 'styles.json'}"
 CHARACTER_FILE = f"{INPUT_DIR}/{'characters_test.json' if USE_TEST_INPUT else 'characters.json'}"
 
-STYLE_RESPONSE = f"{OUTPUT_DIR}/style_response.json"
-CHARACTER_RESPONSE = f"{OUTPUT_DIR}/character_response.json"
-FINAL_PROMPTS = f"{OUTPUT_DIR}/final_prompts.json"
+STYLE_RESPONSE = f"{OUTPUT_DIR}/json/style_response.json"
+CHARACTER_RESPONSE = f"{OUTPUT_DIR}/json/character_response.json"
+FINAL_PROMPTS = f"{OUTPUT_DIR}/json/final_prompts.json"
 
 # === OpenAI Settings ===
 OPENAI_MODEL = "gpt-4o"
