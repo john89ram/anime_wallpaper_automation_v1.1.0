@@ -1,18 +1,14 @@
+
 import json
-import os
 import random
 import openai
 from pathlib import Path
-from dotenv import load_dotenv
+from config import OPENAI_API_KEY, STYLE_FILE, STYLE_RESPONSE, DEFAULT_TARGET, OPENAI_MODEL
+from config import USE_TEST_INPUT
+print(f"🧪 Using test input: {USE_TEST_INPUT}")
 
-# 🔐 Load environment variables
-load_dotenv()
-
-# 🔧 Setup
-openai.api_key = os.getenv("OPENAI_API_KEY")
-STYLE_FILE = "input/styles.json"
-OUTPUT_FILE = "output/style_response.json"
-TARGET = "anime characters"
+# 🔐 Set API key
+openai.api_key = OPENAI_API_KEY
 
 # 📖 Load styles
 with open(STYLE_FILE, "r", encoding="utf-8") as f:
@@ -23,7 +19,7 @@ selected_style = random.choice(style_pool)
 
 # 🧠 Build system prompt
 style_agent_prompt = f"""
-You are an expert visual style generator for AI image creation. Your job is to create visual prompts for live AI wallpapers that showcase {TARGET}. You do **not** describe the character directly. Your focus is to define the artistic and visual direction of the image.
+You are an expert visual style generator for AI image creation. Your job is to create visual prompts for live AI wallpapers that showcase {DEFAULT_TARGET}. You do **not** describe the character directly. Your focus is to define the artistic and visual direction of the image.
 
 Your selected style is:
 **{selected_style}**
@@ -43,7 +39,7 @@ Output one result in this format (valid JSON):
 
 # 💬 Call ChatGPT
 response = openai.chat.completions.create(
-    model="gpt-4o",
+    model=OPENAI_MODEL,
     messages=[{"role": "system", "content": style_agent_prompt}],
     temperature=0.9
 )
@@ -52,8 +48,8 @@ response = openai.chat.completions.create(
 result = response.choices[0].message.content
 style_json = json.loads(result)
 
-Path("output").mkdir(exist_ok=True)
-with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
+Path(STYLE_RESPONSE).parent.mkdir(exist_ok=True)
+with open(STYLE_RESPONSE, "w", encoding="utf-8") as f:
     json.dump(style_json, f, indent=2)
 
-print("✅ Step 1 Complete. Style saved to:", OUTPUT_FILE)
+print("✅ Step 1 Complete. Style saved to:", STYLE_RESPONSE)

@@ -1,40 +1,32 @@
+
 import os
 import json
 import base64
 import requests
 from pathlib import Path
-from dotenv import load_dotenv
+from config import OPENAI_API_KEY, FINAL_PROMPTS, OUTPUT_DIR, IMAGE_MODEL, IMAGE_SIZE, IMAGE_QUALITY, IMAGE_MODERATION, IMAGE_FORMAT, IMAGE_BG
 
-# 🔐 Load environment variables
-load_dotenv()
-API_KEY = os.getenv("OPENAI_API_KEY")
-
-# 📁 Config
-PROMPT_FILE = "output/final_prompts.json"
-OUTPUT_DIR = Path("output")
-OUTPUT_DIR.mkdir(exist_ok=True)
-
-# 🖼 Image generation config
 API_URL = "https://api.openai.com/v1/images/generations"
 HEADERS = {
-    "Authorization": f"Bearer {API_KEY}",
+    "Authorization": f"Bearer {OPENAI_API_KEY}",
     "Content-Type": "application/json"
 }
+
 PARAMS_BASE = {
-    "model": "gpt-image-1",
-    "size": "1024x1536",
-    "quality": "high",
-    "moderation": "low",
-    "output_format": "jpeg",
-    "background": "opaque"
-    # ❌ Do NOT include 'response_format'
+    "model": IMAGE_MODEL,
+    "size": IMAGE_SIZE,
+    "quality": IMAGE_QUALITY,
+    "moderation": IMAGE_MODERATION,
+    "output_format": IMAGE_FORMAT,
+    "background": IMAGE_BG
 }
 
-# 📖 Load prompts
-with open(PROMPT_FILE, "r", encoding="utf-8") as f:
+with open(FINAL_PROMPTS, "r", encoding="utf-8") as f:
     prompts = json.load(f)
 
-# 📤 Generate and save each image
+OUTPUT_DIR = Path(OUTPUT_DIR)
+OUTPUT_DIR.mkdir(exist_ok=True)
+
 for i, entry in enumerate(prompts):
     prompt = entry["final_prompt"]
     print(f"\n📤 Sending prompt {i+1}/{len(prompts)} to OpenAI...")

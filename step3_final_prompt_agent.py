@@ -1,26 +1,16 @@
+
 import json
-import os
 import openai
 from pathlib import Path
-from dotenv import load_dotenv
+from config import OPENAI_API_KEY, STYLE_RESPONSE, CHARACTER_RESPONSE, FINAL_PROMPTS, OPENAI_MODEL, DEFAULT_ASPECT_RATIO, DEFAULT_RESOLUTION, DEFAULT_RENDERING
 
-# 🔐 Load environment variables
-load_dotenv()
-openai.api_key = os.getenv("OPENAI_API_KEY")
+openai.api_key = OPENAI_API_KEY
 
-# 📁 File paths
-STYLE_FILE = "output/style_response.json"
-CHAR_FILE = "output/character_response.json"
-OUTPUT_FILE = "output/final_prompts.json"
-
-# 📖 Load style and character data
-with open(STYLE_FILE, "r", encoding="utf-8") as f:
+with open(STYLE_RESPONSE, "r", encoding="utf-8") as f:
     style = json.load(f)
-
-with open(CHAR_FILE, "r", encoding="utf-8") as f:
+with open(CHARACTER_RESPONSE, "r", encoding="utf-8") as f:
     characters = json.load(f)
 
-# 🧠 Final Prompt Agent instruction
 system_prompt = f"""
 You are an expert prompt composer for AI image generation. Your role is to take two inputs:
 
@@ -32,10 +22,9 @@ You are an expert prompt composer for AI image generation. Your role is to take 
 - Dimensionality: {style["dimensionality"]}
 - Art Profile: {style["art_profile"]}
 
-2. A list of 3 characters:
+2. A list of characters:
 """
 
-# Add characters
 for c in characters:
     system_prompt += f"""
 - Name: {c['name']}
@@ -44,7 +33,7 @@ for c in characters:
   Color Scheme: {c['color_scheme']}
 """
 
-system_prompt += """
+system_prompt += f"""
 Generate one cinematic text-to-image prompt for **each character**. Follow these rules:
 
 - Begin each prompt with: [Character] from [Origin] is pictured...
@@ -53,39 +42,30 @@ Generate one cinematic text-to-image prompt for **each character**. Follow these
 - Use vivid visual detail (not vague poetry)
 - Mention character placement, size, and facing direction
 - End each prompt with:
-Resolution: 8K
-Aspect Ratio: 9:16 (portrait)
-Rendering: Ultra-detailed, high dynamic range
+Resolution: {DEFAULT_RESOLUTION}
+Aspect Ratio: {DEFAULT_ASPECT_RATIO}
+Rendering: {DEFAULT_RENDERING}
 
 Respond in valid JSON format:
 [
-  { "final_prompt": "..." },
-  { "final_prompt": "..." },
-  { "final_prompt": "..." }
+  {{ "final_prompt": "..." }},
+  {{ "final_prompt": "..." }},
+  {{ "final_prompt": "..." }}
 ]
 """
 
-# 💬 Call ChatGPT
 response = openai.chat.completions.create(
-    model="gpt-4o",
+    model=OPENAI_MODEL,
     messages=[{"role": "system", "content": system_prompt}],
     temperature=0.8
 )
 
-# 📦 Get content and clean markdown-style code blocks
 content = response.choices[0].message.content.strip()
-
-# 🧪 Debug output
-print("\n🧪 GPT RAW OUTPUT:\n")
-print(content)
-
-# 🧼 Remove ```json or ``` wrappers
 if content.startswith("```json"):
     content = content.removeprefix("```json").removesuffix("```").strip()
 elif content.startswith("```"):
     content = content.removeprefix("```").removesuffix("```").strip()
 
-# 🧾 Try parsing JSON
 try:
     prompts = json.loads(content)
 except json.JSONDecodeError as e:
@@ -93,10 +73,8 @@ except json.JSONDecodeError as e:
     print("GPT likely returned text instead of JSON. Fix prompt or log the output above.")
     exit(1)
 
-
-# 💾 Save parsed prompts
-Path("output").mkdir(exist_ok=True)
-with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
+Path(FINAL_PROMPTS).parent.mkdir(exist_ok=True)
+with open(FINAL_PROMPTS, "w", encoding="utf-8") as f:
     json.dump(prompts, f, indent=2)
 
-print("\n✅ Step 3 Complete. Final prompts saved to:", OUTPUT_FILE)
+print("\n✅ Step 3 Complete. Final prompts saved to:", FINAL_PROMPTS)
