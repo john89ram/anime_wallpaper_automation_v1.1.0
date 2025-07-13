@@ -1,72 +1,73 @@
-import json
 import os
+import json
+import re
 import random
-import openai
-from pathlib import Path
-from dotenv import load_dotenv
+from openai import OpenAI
 
-# 🔐 Load environment variables
-load_dotenv()
-openai.api_key = os.getenv("OPENAI_API_KEY")
+# 🔑 Init API
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-# 📁 File paths
-CHAR_FILE = "characters.json"
-EXCLUDE_FILE = "exclusions.json"
-OUTPUT_FILE = "output/character_response.json"
+# 📁 Load characters.json
+characters_path = os.path.join("input", "characters.json")
+with open(characters_path, "r", encoding="utf-8") as f:
+    character_list = json.load(f)
 
-# 📖 Load character list
-with open(CHAR_FILE, "r", encoding="utf-8") as f:
-    characters = json.load(f)
+# 🎲 Pick 3 random characters
+selected = random.sample(character_list, 3)
 
-# ❌ Filter exclusions if provided
-if Path(EXCLUDE_FILE).exists():
-    with open(EXCLUDE_FILE, "r", encoding="utf-8") as f:
-        exclusions = set(json.loads(f.read().strip()))
-    characters = [c for c in characters if c["name"] not in exclusions]
+# ✏️ Build content for GPT
+character_summary = "\n".join([
+    f"{char['name']} from {char['origin']}" for char in selected
+])
 
-# 🎲 Randomly select 3 characters
-selected = random.sample(characters, 3)
+user_prompt = f"""
+Take the following 3 anime characters and redesign them for a **dramatic cyberpunk anime scene**.
 
-# 🧠 Build system prompt for Character Agent
-character_prompt = f"""
-You are an expert character selector and descriptor for AI image generation. Your task is to return the following characters using this structure:
+Keep their names and origins the same, but reimagine their clothing and color_scheme to match a cyberpunk theme. 
+Output only a JSON array where each object contains:
+- name
+- origin
+- clothing (reimagined)
+- color_scheme (reimagined)
 
-[
-  {{
-    "name": "{selected[0]['name']}",
-    "origin": "{selected[0]['origin']}",
-    "clothing": "{selected[0]['clothing']}",
-    "color_scheme": "{selected[0]['color_scheme']}"
-  }},
-  {{
-    "name": "{selected[1]['name']}",
-    "origin": "{selected[1]['origin']}",
-    "clothing": "{selected[1]['clothing']}",
-    "color_scheme": "{selected[1]['color_scheme']}"
-  }},
-  {{
-    "name": "{selected[2]['name']}",
-    "origin": "{selected[2]['origin']}",
-    "clothing": "{selected[2]['clothing']}",
-    "color_scheme": "{selected[2]['color_scheme']}"
-  }}
-]
+Characters:
+{character_summary}
 """
 
-# 💬 Call ChatGPT to finalize formatting (or skip this if you trust your data)
-response = openai.chat.completions.create(
-    model="gpt-4o",
-    messages=[{"role": "system", "content": character_prompt}],
-    temperature=0.7
+# 🌐 GPT call
+response = client.chat.completions.create(
+    model="gpt-4",
+    messages=[
+        {"role": "system", "content": "You are a character styling assistant."},
+        {"role": "user", "content": user_prompt.strip()}
+    ],
+    temperature=0.7,
+    max_tokens=500
 )
 
-# 🧾 Parse and Save
-result = response.choices[0].message.content
-char_json = json.loads(result)
+# 📤 Extract and clean the response
+result = response.choices[0].message.content.strip()
+clean_json = re.sub(r"^```(json)?|```$", "", result.strip(), flags=re.MULTILINE).strip()
 
-Path("output").mkdir(exist_ok=True)
-with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
-    json.dump(char_json, f, indent=2)
+# 🧪 Decode JSON
+try:
+    char_json = json.loads(clean_json)
+except json.JSONDecodeError as e:
+    print("❌ Failed to decode JSON. Output:\n", clean_json)
+    print(f"\n❗ JSONDecodeError: {e}")
+    exit(1)
 
-print("✅ Step 2 Complete. Character data saved to:", OUTPUT_FILE)
-print(f"\n🎴 Selected characters: {[c['name'] for c in selected]}")
+# 💾 Save to ./output/character_response.json
+output_dir = os.path.join(os.getcwd(), "output")
+os.makedirs(output_dir, exist_ok=True)
+output_path = os.path.join(output_dir, "character_response.json")
+
+with open(output_path, "w", encoding="utf-8") as f:
+    json.dump(char_json, f, indent=2, ensure_ascii=False)
+
+# ✅ Done
+print(f"✅ Saved re-styled characters to {output_path}:\n")
+for i, char in enumerate(char_json, 1):
+    print(f"{i}. {char['name']} from {char['origin']}")
+    print(f"   - Clothing: {char['clothing']}")
+    print(f"   - Color Scheme: {char['color_scheme']}\n")

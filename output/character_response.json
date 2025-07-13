@@ -1,20 +1,32 @@
 [
   {
-    "name": "Holo",
-    "origin": "Spice and Wolf",
-    "clothing": "Traditional medieval attire with a long brown cloak and a simple dress, often accessorized with a belt and a pouch.",
-    "color_scheme": "Earthy tones such as browns, reds, and oranges, reflecting her wolf heritage."
+    "name": "Haunter",
+    "origin": "Pokémon",
+    "clothing": {
+      "reimagined": "A sleek, metallic armor that covers Haunter's body, accentuating its ghostly shape. It features sharp edges and a futuristic visor for its eyes. Its hands are replaced with holographic projections of claws, emanating an eerie glow."
+    },
+    "color_scheme": {
+      "reimagined": "A dominant palette of deep purples and blacks, with neon green highlights for the visor and holographic claws, to maintain the ghostly feel while adding a cyberpunk aesthetic."
+    }
   },
   {
-    "name": "Rin Shima",
-    "origin": "Yuru Camp",
-    "clothing": "Casual winter camping outfit, including a puffer jacket, scarf, beanie, and gloves.",
-    "color_scheme": "Cool tones like blues and purples, often paired with neutral colors like gray and white."
+    "name": "Gengar",
+    "origin": "Pokémon",
+    "clothing": {
+      "reimagined": "Gengar is draped in a dark, hooded cloak with an electric neon trim. The cloak shimmers with a subtle digital pattern. It wears a pair of advanced tech boots and has cybernetic enhancements to its arms, allowing for intense energy projections."
+    },
+    "color_scheme": {
+      "reimagined": "Predominantly midnight blue and black, with hot pink and electric blue neon accents for the cloak's trim and energy projections."
+    }
   },
   {
-    "name": "Shoto Todoroki",
-    "origin": "My Hero Academia",
-    "clothing": "Hero costume featuring a blue and white jumpsuit with utility belt and combat boots.",
-    "color_scheme": "Red and white hair, with a predominantly blue costume accented by white and silver details."
+    "name": "Gastly",
+    "origin": "Pokémon",
+    "clothing": {
+      "reimagined": "Gastly's form is encased in a high-tech, floating orb-like device, which helps it move around. The device has various panels and wires running across it, emitting bursts of light at intervals, to represent Gastly's gaseous body."
+    },
+    "color_scheme": {
+      "reimagined": "A combination of dark grays and neon blues for the device, with Gastly's form inside the orb retaining its ghostly purple hue. The bursts of light are a bright, neon cyan."
+    }
   }
 ]

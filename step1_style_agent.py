@@ -10,7 +10,7 @@ load_dotenv()
 
 # 🔧 Setup
 openai.api_key = os.getenv("OPENAI_API_KEY")
-STYLE_FILE = "styles.json"
+STYLE_FILE = "input/styles.json"
 OUTPUT_FILE = "output/style_response.json"
 TARGET = "anime characters"
 
