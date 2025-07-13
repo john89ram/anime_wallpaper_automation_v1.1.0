@@ -1,1 +1,16 @@
+# Output folders
+/output/
+output/
+debug/
+*.jpeg
+*.png
+*.txt
+*.log
+
+# Python internals
+__pycache__/
+*.pyc
+
+# Virtual env
+venv/
 .env
