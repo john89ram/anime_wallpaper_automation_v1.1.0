@@ -66,9 +66,23 @@ if DEBUG_MODE:
 try:
     char_json = json.loads(clean_json)
 except json.JSONDecodeError as e:
-    print("❌ Failed to decode JSON. Output:\n", clean_json)
-    print(f"\n❗ JSONDecodeError: {e}")
-    exit(1)
+    print("❌ Failed to decode JSON. Attempting recovery...")
+    print(f"❗ JSONDecodeError: {e}")
+
+    # Try partial recovery using regex to extract valid JSON objects
+    match_objects = re.findall(r'\{.*?\}(?=,?\s*\{|\s*\])', clean_json, re.DOTALL)
+    if match_objects:
+        repaired_json = "[" + ",\n".join(match_objects) + "]"
+        try:
+            char_json = json.loads(repaired_json)
+            print(f"✅ Partial recovery successful: {len(char_json)} character(s) loaded.")
+        except json.JSONDecodeError as e2:
+            print("❌ Still failed to decode repaired JSON.")
+            print(f"❗ JSONDecodeError: {e2}")
+            exit(1)
+    else:
+        print("❌ No valid JSON objects found in GPT output.")
+        exit(1)
 
 os.makedirs(os.path.dirname(CHARACTER_RESPONSE), exist_ok=True)
 with open(CHARACTER_RESPONSE, "w", encoding="utf-8") as f:
