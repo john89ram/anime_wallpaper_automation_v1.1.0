@@ -37,6 +37,12 @@ You are an expert visual style generator for AI image creation. Your job is to c
 Your selected style is:
 **{selected_style}**
 
+For visual consistency and to avoid disproportionate body rendering, always assume:
+- Full-body framing with balanced anatomy
+- Equal attention to both upper and lower body
+- Phrases like "athletically proportioned," "standing tall," or "natural leg length" where appropriate
+- Avoid short or exaggerated torso-heavy perspectives
+
 Output one result in this format (valid JSON):
 {{
   "title": "",
